@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ignition Auth | Vault Lock</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Vault Lock Active</h2>
+        <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">
+            Enter the 6-digit code from your authenticator device.
+        </p>
+        
+        <form method="POST">
+            <div class="input-group">
+                <label for="token">Authentication Token</label>
+                <input type="text" id="token" name="token" required autocomplete="off" maxlength="6" pattern="\d{6}" placeholder="000000" style="text-align: center; font-size: 1.5rem; letter-spacing: 5px;">
+            </div>
+
+            <button type="submit">Verify Identity</button>
+        </form>
+    </div>
+</body>
+</html>

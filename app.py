@@ -66,16 +66,22 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if user and bcrypt.check_password_hash(user.password_hash, password):
-            session['user_id'] = user.id
-            session['role'] = user.role
             
-            log_security_event(
-                event_type="AUTH_SUCCESS", 
-                message="Valid credentials provided", 
-                source_ip=request.remote_addr, 
-                target_user=email
-            )
-            return redirect(url_for('dashboard'))
+            if user.totp_secret:
+                session['pending_user_id'] = user.id
+                return redirect(url_for('verify_2fa'))
+            
+            else:
+                session['user_id'] = user.id
+                session['role'] = user.role
+                
+                log_security_event(
+                    event_type="AUTH_SUCCESS", 
+                    message="Valid credentials (No 2FA)", 
+                    source_ip=request.remote_addr, 
+                    target_user=email
+                )
+                return redirect(url_for('dashboard'))
             
         else:
             log_security_event(
@@ -88,20 +94,45 @@ def login():
 
     return render_template('login.html')
 
+@app.route('/verify_2fa', methods=['GET', 'POST'])
+def verify_2fa():
+    if 'pending_user_id' not in session:
+        return redirect(url_for('login'))
+        
+    if request.method == 'POST':
+        token = request.form.get('token')
+        user = User.query.get(session['pending_user_id'])
+        
+        totp = pyotp.TOTP(user.totp_secret)
+        if totp.verify(token, valid_window=1):
+            session.pop('pending_user_id', None)
+            session['user_id'] = user.id
+            session['role'] = user.role
+            
+            log_security_event(
+                event_type="AUTH_SUCCESS", 
+                message="2FA Verification successful", 
+                source_ip=request.remote_addr, 
+                target_user=user.email
+            )
+            return redirect(url_for('dashboard'))
+        else:
+            log_security_event(
+                event_type="2FA_FAILED", 
+                message="Invalid 2FA token provided", 
+                source_ip=request.remote_addr, 
+                target_user=user.email
+            )
+            return "Error: Invalid Authentication Code."
+            
+    return render_template('verify_2fa.html')
+
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    return f"""
-    <div style="background-color: #0d1117; color: #58a6ff; height: 100vh; padding: 50px; font-family: sans-serif; text-align: center;">
-        <h1>Ignition Secure Dashboard</h1>
-        <p style="color: #c9d1d9;">Status: Authenticated</p>
-        <p style="color: #c9d1d9;">Clearance Level: {session.get('role')}</p>
-        <br>
-        <a href="/setup_2fa" style="padding: 10px 20px; background-color: #ff4500; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Configure 2FA Vault Lock</a>
-    </div>
-    """
+    return render_template('dashboard.html', role=session.get('role'))
 
 @app.route('/setup_2fa')
 def setup_2fa():
@@ -133,6 +164,25 @@ def setup_2fa():
     encoded_img = base64.b64encode(stream.getvalue()).decode("utf-8")
 
     return render_template('2fa_setup.html', qr_code=encoded_img, secret=user.totp_secret)
+
+@app.route('/logout')
+def logout():
+    user_email = "UNKNOWN"
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        if user:
+            user_email = user.email
+
+    log_security_event(
+        event_type="AUTH_LOGOUT", 
+        message="Session securely terminated by user", 
+        source_ip=request.remote_addr, 
+        target_user=user_email
+    )
+    
+    session.clear()
+    
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

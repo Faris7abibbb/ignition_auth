@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ignition Auth | Secure Command Center</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .dashboard-container {
+            background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            padding: 50px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            width: 100%; max-width: 600px; border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .status-badge {
+            display: inline-block; padding: 5px 15px; background-color: rgba(35, 134, 54, 0.2);
+            color: #2ea043; border: 1px solid #238636; border-radius: 20px; font-size: 0.85rem;
+            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px;
+        }
+        .action-buttons {
+            display: flex; gap: 15px; justify-content: center; margin-top: 30px;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="status-badge">Connection Secure</div>
+        <h2>Command Center</h2>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">
+            Clearance Level: <strong style="color: #58a6ff;">{{ role }}</strong>
+        </p>
+
+        <div class="action-buttons">
+            <form action="{{ url_for('setup_2fa') }}" method="GET" style="flex: 1;">
+                <button type="submit" class="btn-secondary">View 2FA Config</button>
+            </form>
+            
+            <form action="{{ url_for('logout') }}" method="GET" style="flex: 1;">
+                <button type="submit" style="background: linear-gradient(45deg, #8b0000, #dc143c);">Terminate Session</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
