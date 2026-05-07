@@ -1,0 +1,16 @@
+# Ignore the virtual environment
+venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore the SQLite database and instance folder
+instance/
+*.db
+
+# Ignore local environment variables
+.env
+
+# Ignore the telemetry logs
+*.log
