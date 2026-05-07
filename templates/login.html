@@ -2,18 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Ignition Auth | Initialize</title>
+    <title>Ignition Auth | Gateway</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="auth-container">
-        <h2>Identity Initialization</h2>
+        <h2>System Gateway</h2>
         <form method="POST">
-            <div class="input-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required autocomplete="off">
-            </div>
-
             <div class="input-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" required autocomplete="off">
@@ -24,9 +19,9 @@
                 <input type="password" id="password" name="password" required>
             </div>
 
-            <button type="submit">Ignite Identity</button>
+            <button type="submit">Engage Authentication</button>
         </form>
-        <a href="{{ url_for('login') }}" class="switch-link">Return to Gateway Access</a>
+        <a href="{{ url_for('register') }}" class="switch-link">No identity found? Initialize here.</a>
     </div>
 </body>
 </html>

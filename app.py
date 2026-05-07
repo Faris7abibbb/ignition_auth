@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from extensions import db, bcrypt
 from models import User
 from security_logger import log_security_event
@@ -56,6 +56,50 @@ def register():
         return redirect(url_for('home'))
 
     return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        user = User.query.filter_by(email=email).first()
+
+        if user and bcrypt.check_password_hash(user.password_hash, password):
+            session['user_id'] = user.id
+            session['role'] = user.role
+            
+            log_security_event(
+                event_type="AUTH_SUCCESS", 
+                message="Valid credentials provided", 
+                source_ip=request.remote_addr, 
+                target_user=email
+            )
+            return redirect(url_for('dashboard'))
+            
+        else:
+            log_security_event(
+                event_type="AUTH_FAILED", 
+                message="Invalid credentials attempted", 
+                source_ip=request.remote_addr, 
+                target_user=email
+            )
+            return "Error: Invalid credentials."
+
+    return render_template('login.html')
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return f"""
+    <div style="background-color: #0d1117; color: #58a6ff; height: 100vh; padding: 50px; font-family: sans-serif;">
+        <h1>Ignition Secure Dashboard</h1>
+        <p style="color: #c9d1d9;">Status: Authenticated</p>
+        <p style="color: #c9d1d9;">Clearance Level: {session.get('role')}</p>
+    </div>
+    """
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
