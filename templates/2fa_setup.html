@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ignition Auth | 2FA Configuration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .qr-box {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px auto;
+            width: fit-content;
+        }
+        .qr-box img {
+            width: 200px;
+            height: 200px;
+        }
+        .secret-key {
+            font-family: monospace;
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 4px;
+            color: #58a6ff;
+            letter-spacing: 2px;
+            word-break: break-all;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container" style="max-width: 450px;">
+        <h2>Vault Lock Configuration</h2>
+        <p style="text-align: center; font-size: 0.9rem; margin-bottom: 20px;">
+            Scan this image with Google Authenticator, Authy, or your preferred TOTP application.
+        </p>
+        
+        <div class="qr-box">
+            <img src="data:image/png;base64,{{ qr_code }}" alt="2FA QR Code">
+        </div>
+
+        <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+            Manual Entry Code:
+        </p>
+        <div class="secret-key">
+            {{ secret }}
+        </div>
+
+        <form action="{{ url_for('dashboard') }}" method="GET">
+            <button type="submit" style="background: var(--text-muted); color: #000;">Return to Dashboard</button>
+        </form>
+    </div>
+</body>
+</html>

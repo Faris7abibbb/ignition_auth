@@ -2,6 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from extensions import db, bcrypt
 from models import User
 from security_logger import log_security_event
+import pyotp
+import qrcode
+import io
+import base64
 
 # 1. Initialize the Application
 app = Flask(__name__)
@@ -26,7 +30,6 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        # SECURITY CHECK 1: Does this email already exist?
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             log_security_event(
@@ -37,15 +40,12 @@ def register():
             )
             return "Error: Identity already exists."
 
-        # CRYPTOGRAPHY: Hash the password
         hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        # DATABASE: Create the new user
         new_user = User(username=username, email=email, password_hash=hashed_pw)
         db.session.add(new_user)
         db.session.commit()
 
-        # FIRE TELEMETRY
         log_security_event(
             event_type="USER_REGISTERED", 
             message="New identity initialized", 
@@ -94,12 +94,45 @@ def dashboard():
         return redirect(url_for('login'))
     
     return f"""
-    <div style="background-color: #0d1117; color: #58a6ff; height: 100vh; padding: 50px; font-family: sans-serif;">
+    <div style="background-color: #0d1117; color: #58a6ff; height: 100vh; padding: 50px; font-family: sans-serif; text-align: center;">
         <h1>Ignition Secure Dashboard</h1>
         <p style="color: #c9d1d9;">Status: Authenticated</p>
         <p style="color: #c9d1d9;">Clearance Level: {session.get('role')}</p>
+        <br>
+        <a href="/setup_2fa" style="padding: 10px 20px; background-color: #ff4500; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Configure 2FA Vault Lock</a>
     </div>
     """
+
+@app.route('/setup_2fa')
+def setup_2fa():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = User.query.get(session['user_id'])
+
+    if not user.totp_secret:
+        user.totp_secret = pyotp.random_base32()
+        db.session.commit()
+
+        log_security_event(
+            event_type="2FA_INITIALIZED", 
+            message="User generated a 2FA secret key", 
+            source_ip=request.remote_addr, 
+            target_user=user.email
+        )
+
+    totp_uri = pyotp.totp.TOTP(user.totp_secret).provisioning_uri(
+        name=user.email,
+        issuer_name="Ignition Auth Engine"
+    )
+
+    img = qrcode.make(totp_uri)
+    stream = io.BytesIO()
+    img.save(stream, format="PNG")
+    
+    encoded_img = base64.b64encode(stream.getvalue()).decode("utf-8")
+
+    return render_template('2fa_setup.html', qr_code=encoded_img, secret=user.totp_secret)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
