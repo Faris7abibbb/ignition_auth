@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ignition Auth | Initialize Identity</title>
+    <style>
+        /* Custom Dark Mode UI */
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .auth-container {
+            background-color: #161b22;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+            width: 100%;
+            max-width: 350px;
+            border: 1px solid #30363d;
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #58a6ff;
+            letter-spacing: 1px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 20px 0;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #238636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2ea043;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <h2>System Registration</h2>
+        <form method="POST">
+            <label for="username">Access Alias</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="email">Secure Communication Line (Email)</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Encryption Key (Password)</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Initialize Identity</button>
+        </form>
+    </div>
+
+</body>
+</html>
